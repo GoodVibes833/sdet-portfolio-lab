@@ -29,7 +29,7 @@ export default function VisitedPage() {
           <Link href="/" className="p-2 rounded-xl hover:bg-slate-200 transition-colors">
             <ArrowLeft size={20} className="text-slate-600" />
           </Link>
-          <h1 className="text-2xl font-black text-slate-900 flex items-center gap-2">
+          <h1 data-testid="visited-heading" className="text-2xl font-black text-slate-900 flex items-center gap-2">
             <CheckCircle2 size={24} className="text-green-500" />
             다녀왔어요
           </h1>
@@ -57,9 +57,10 @@ export default function VisitedPage() {
         {visitedPlaces.length === 0 ? (
           <div className="text-center py-20">
             <div className="text-5xl mb-4">🗺️</div>
-            <p className="text-slate-500 text-lg font-semibold mb-2">아직 방문한 장소가 없어요</p>
+            <p data-testid="visited-empty" className="text-slate-500 text-lg font-semibold mb-2">아직 방문한 장소가 없어요</p>
             <p className="text-slate-400 text-sm mb-6">지도에서 장소를 찾아 체크인 해보세요</p>
             <Link
+              data-testid="visited-explore-link"
               href="/explore"
               className="inline-flex items-center gap-2 px-6 py-3 rounded-2xl text-white font-bold text-sm"
               style={{ background: "linear-gradient(135deg, #e85d26, #f5a623)" }}

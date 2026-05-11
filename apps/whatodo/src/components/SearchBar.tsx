@@ -26,6 +26,7 @@ export default function SearchBar({
         <Search size={18} className="text-white/60 shrink-0" />
         <input
           type="text"
+          data-testid="search-input"
           placeholder={placeholder}
           className="flex-1 bg-transparent text-white placeholder:text-white/50 outline-none text-sm"
           value={value}
@@ -33,13 +34,14 @@ export default function SearchBar({
           aria-label="검색"
         />
         {value && (
-          <button onClick={() => onChange("")} aria-label="검색어 지우기">
+          <button data-testid="search-clear" onClick={() => onChange("")} aria-label="검색어 지우기">
             <X size={16} className="text-white/60 hover:text-white" />
           </button>
         )}
       </div>
       {onFilterToggle && (
         <button
+          data-testid="search-filter"
           onClick={onFilterToggle}
           className={cn(
             "flex items-center gap-2 px-4 py-3 rounded-2xl text-sm font-semibold border transition-all",

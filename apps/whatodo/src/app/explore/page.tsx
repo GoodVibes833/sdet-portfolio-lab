@@ -53,7 +53,7 @@ function ExploreContent() {
         style={{ background: "linear-gradient(135deg, #1e3a5f, #2d5a8e)" }}
       >
         <div className="max-w-6xl mx-auto">
-          <h1 className="text-3xl font-black text-white mb-2">🍁 토론토 탐색</h1>
+          <h1 data-testid="explore-heading" className="text-3xl font-black text-white mb-2">🍁 토론토 탐색</h1>
           <p className="text-blue-200 text-sm mb-4">
             워홀러를 위한 토론토 알짜 장소 — 한인 맛집부터 히든 카페까지
           </p>
@@ -62,6 +62,7 @@ function ExploreContent() {
           <div className="flex gap-2 mb-6 overflow-x-auto scrollbar-hide">
             {cities.map((city) => (
               <button
+                data-testid={`city-tab-${city.id}`}
                 key={city.id}
                 disabled={city.comingSoon}
                 onClick={() => {
@@ -102,6 +103,7 @@ function ExploreContent() {
               {/* 무료 토글 */}
               <div className="flex items-center gap-3">
                 <button
+                  data-testid="filter-free"
                   onClick={() => setFreeOnly(!freeOnly)}
                   className={cn(
                     "flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold border transition-all",
@@ -111,6 +113,7 @@ function ExploreContent() {
                   {freeOnly ? "✅" : "🆓"} 무료만 보기
                 </button>
                 <button
+                  data-testid="filter-hidden"
                   onClick={() => setHiddenOnly(!hiddenOnly)}
                   className={cn(
                     "flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold border transition-all",
@@ -176,6 +179,7 @@ function ExploreContent() {
         <div className="max-w-6xl mx-auto px-4">
           <div className="flex gap-2 py-3 overflow-x-auto scrollbar-hide">
             <button
+              data-testid="cat-all"
               onClick={() => setSelectedCategory(null)}
               className={cn(
                 "shrink-0 px-4 py-2 rounded-xl text-sm font-semibold transition-all",
@@ -191,6 +195,7 @@ function ExploreContent() {
               const count = cityPlaces.filter((p) => p.category === cat.id).length;
               return (
                 <button
+                  data-testid={`cat-${cat.testId}`}
                   key={cat.id}
                   onClick={() => setSelectedCategory(selectedCategory === cat.id ? null : cat.id)}
                   className={cn(
@@ -216,13 +221,14 @@ function ExploreContent() {
       {/* Results */}
       <div className="max-w-6xl mx-auto px-4 py-8">
         <div className="flex items-center justify-between mb-6">
-          <p className="text-slate-500 text-sm">
+          <p data-testid="results-count" className="text-slate-500 text-sm">
             <span className="font-bold text-slate-900">{filtered.length}개</span> 장소 발견
             {freeOnly && <span className="ml-2 text-xs font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded-full">🆓 무료만</span>}
             {hiddenOnly && <span className="ml-2 text-xs font-bold text-purple-600 bg-purple-50 px-2 py-0.5 rounded-full">🕵️ 히든만</span>}
           </p>
           {(selectedCategory || priceFilter !== null || search || freeOnly || hiddenOnly || sortBy !== "default") && (
             <button
+              data-testid="filter-reset"
               onClick={() => {
                 setSelectedCategory(null);
                 setPriceFilter(null);

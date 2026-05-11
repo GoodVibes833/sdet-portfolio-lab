@@ -1,0 +1,21 @@
+{
+  "/_global-error/page": "/_global-error",
+  "/_not-found/page": "/_not-found",
+  "/auth/callback/route": "/auth/callback",
+  "/community/page": "/community",
+  "/explore/page": "/explore",
+  "/favicon.ico/route": "/favicon.ico",
+  "/friends/[userId]/page": "/friends/[userId]",
+  "/friends/chat/[userId]/page": "/friends/chat/[userId]",
+  "/friends/page": "/friends",
+  "/hidden/page": "/hidden",
+  "/map/page": "/map",
+  "/missions/page": "/missions",
+  "/page": "/",
+  "/place/[id]/page": "/place/[id]",
+  "/profile/page": "/profile",
+  "/ranking/page": "/ranking",
+  "/tips/page": "/tips",
+  "/visited/page": "/visited",
+  "/wishlist/page": "/wishlist"
+}

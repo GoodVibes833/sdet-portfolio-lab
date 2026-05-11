@@ -36,7 +36,7 @@ export default function MissionsPage() {
         <div className="max-w-2xl mx-auto">
           <div className="flex items-center gap-2 mb-1">
             <Trophy size={22} className="text-yellow-400" />
-            <h1 className="text-2xl font-black text-white">미션 & 뱃지</h1>
+            <h1 data-testid="missions-heading" className="text-2xl font-black text-white">미션 & 뱃지</h1>
           </div>
           <p className="text-blue-200 text-sm mb-6">미션을 완료하면 포인트와 뱃지를 받아요!</p>
 
@@ -77,6 +77,7 @@ export default function MissionsPage() {
         <div className="max-w-2xl mx-auto px-4 flex gap-1 py-2">
           {(["missions", "badges"] as const).map((t) => (
             <button
+              data-testid={t === "missions" ? "missions-tab" : "badges-tab"}
               key={t}
               onClick={() => setTab(t)}
               className={cn(

@@ -8,10 +8,10 @@ import { cn } from "@/lib/utils";
 import { useUserStore } from "@/hooks/useUserStore";
 
 const navItems = [
-  { href: "/", label: "지도", icon: MapPin },
-  { href: "/explore", label: "탐색", icon: List },
-  { href: "/wishlist", label: "가고싶다", icon: Heart },
-  { href: "/visited", label: "다녀왔어요", icon: CheckCircle2 },
+  { href: "/", label: "지도", icon: MapPin, testId: "nav-map" },
+  { href: "/explore", label: "탐색", icon: List, testId: "nav-explore" },
+  { href: "/wishlist", label: "가고싶다", icon: Heart, testId: "nav-wishlist" },
+  { href: "/visited", label: "다녀왔어요", icon: CheckCircle2, testId: "nav-visited" },
 ];
 
 export default function Navbar() {
@@ -23,7 +23,7 @@ export default function Navbar() {
     <>
       <nav className="fixed top-0 left-0 right-0 z-50 glass border-b border-white/20">
         <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2 group">
+          <Link href="/" data-testid="nav-logo" className="flex items-center gap-2 group">
             <div className="w-8 h-8 rounded-xl flex items-center justify-center text-lg"
               style={{ background: "linear-gradient(135deg, #e85d26, #f5a623)" }}>
               🤔
@@ -34,10 +34,11 @@ export default function Navbar() {
           </Link>
 
           <div className="hidden md:flex items-center gap-1">
-            {navItems.map(({ href, label, icon: Icon }) => (
+            {navItems.map(({ href, label, icon: Icon, testId }) => (
               <Link
                 key={href}
                 href={href}
+                data-testid={testId}
                 className={cn(
                   "flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200",
                   pathname === href
@@ -91,10 +92,11 @@ export default function Navbar() {
 
         {mobileOpen && (
           <div className="md:hidden border-t border-white/20 px-4 py-3 flex flex-col gap-1">
-            {navItems.map(({ href, label, icon: Icon }) => (
+            {navItems.map(({ href, label, icon: Icon, testId }) => (
               <Link
                 key={href}
                 href={href}
+                data-testid={`${testId}-mobile`}
                 onClick={() => setMobileOpen(false)}
                 className={cn(
                   "flex items-center gap-2 px-4 py-3 rounded-xl text-sm font-medium transition-all",

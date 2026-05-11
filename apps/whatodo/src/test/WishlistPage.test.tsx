@@ -4,7 +4,7 @@ import WishlistPage from "@/app/wishlist/page";
 
 vi.mock("@/hooks/useUserStore", () => ({
   useUserStore: () => ({
-    wishlist: ["test-place-1"],
+    wishlist: [],
     hydrated: true,
   }),
 }));
@@ -19,9 +19,9 @@ describe("WishlistPage", () => {
     expect(screen.getByText("가고싶다")).toBeInTheDocument();
   });
 
-  it("저장한 장소 수가 표시된다", () => {
+  it("빈 상태 메시지가 표시된다", () => {
     render(<WishlistPage />);
-    expect(screen.getByText("1개")).toBeInTheDocument();
+    expect(screen.getByText("아직 저장한 장소가 없어요")).toBeInTheDocument();
   });
 
   it("장소 탐색 링크가 표시된다", () => {

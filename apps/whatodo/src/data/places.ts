@@ -4481,13 +4481,13 @@ export const tips: Tip[] = [
   },
 ];
 
-export const categories: { id: Category; label: string; emoji: string; color: string }[] = [
-  { id: "맛집", label: "맛집", emoji: "🍜", color: "bg-orange-100 text-orange-700" },
-  { id: "관광", label: "관광지", emoji: "🏛️", color: "bg-blue-100 text-blue-700" },
-  { id: "액티비티", label: "액티비티", emoji: "🏄", color: "bg-green-100 text-green-700" },
-  { id: "쇼핑", label: "쇼핑", emoji: "🛍️", color: "bg-pink-100 text-pink-700" },
-  { id: "자연", label: "자연·공원", emoji: "🌿", color: "bg-emerald-100 text-emerald-700" },
-  { id: "야경", label: "야경", emoji: "🌃", color: "bg-purple-100 text-purple-700" },
-  { id: "카페", label: "카페", emoji: "☕", color: "bg-amber-100 text-amber-700" },
-  { id: "스포츠", label: "스포츠", emoji: "⚾", color: "bg-red-100 text-red-700" },
+export const categories: { id: Category; label: string; emoji: string; color: string; testId: string }[] = [
+  { id: "맛집", label: "맛집", emoji: "🍜", color: "bg-orange-100 text-orange-700", testId: "food" },
+  { id: "관광", label: "관광지", emoji: "🏛️", color: "bg-blue-100 text-blue-700", testId: "sight" },
+  { id: "액티비티", label: "액티비티", emoji: "🏄", color: "bg-green-100 text-green-700", testId: "activity" },
+  { id: "쇼핑", label: "쇼핑", emoji: "🛍️", color: "bg-pink-100 text-pink-700", testId: "shopping" },
+  { id: "자연", label: "자연·공원", emoji: "🌿", color: "bg-emerald-100 text-emerald-700", testId: "nature" },
+  { id: "야경", label: "야경", emoji: "🌃", color: "bg-purple-100 text-purple-700", testId: "night" },
+  { id: "카페", label: "카페", emoji: "☕", color: "bg-amber-100 text-amber-700", testId: "cafe" },
+  { id: "스포츠", label: "스포츠", emoji: "⚾", color: "bg-red-100 text-red-700", testId: "sports" },
 ];

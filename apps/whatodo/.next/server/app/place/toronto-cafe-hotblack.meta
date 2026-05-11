@@ -1,0 +1,16 @@
+{
+  "headers": {
+    "x-nextjs-stale-time": "300",
+    "x-nextjs-prerender": "1",
+    "x-next-cache-tags": "_N_T_/layout,_N_T_/place/layout,_N_T_/place/[id]/layout,_N_T_/place/[id]/page,_N_T_/place/toronto-cafe-hotblack"
+  },
+  "segmentPaths": [
+    "/_tree",
+    "/_full",
+    "/place/$d$id/__PAGE__",
+    "/place/$d$id",
+    "/place",
+    "/_index",
+    "/_head"
+  ]
+}

@@ -73,7 +73,7 @@ export default async function PlaceDetailPage({ params }: Props) {
                 {catInfo?.emoji} {place.category}
               </span>
             </div>
-            <h1 className="text-3xl md:text-4xl font-black text-white mb-1 leading-tight">
+            <h1 data-testid="place-heading" className="text-3xl md:text-4xl font-black text-white mb-1 leading-tight">
               {place.name}
             </h1>
             <p className="text-white/70 text-sm">{place.nameEn}</p>

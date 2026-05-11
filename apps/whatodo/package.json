@@ -9,7 +9,8 @@
     "lint": "eslint",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:e2e": "playwright test"
+    "test:e2e": "next build && npx start-server-and-test 'PORT=3001 npx next start' http://localhost:3001 'npx playwright test'",
+    "test:e2e:dev": "npx start-server-and-test 'PORT=3001 npx next start' http://localhost:3001 'npx playwright test'"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.15",

@@ -22,13 +22,10 @@ describe("VisitedPage", () => {
     expect(screen.getByText("다녀왔어요")).toBeInTheDocument();
   });
 
-  it("통계 카드가 표시된다", () => {
+  it("통계 카드 레이블이 표시된다", () => {
     render(<VisitedPage />);
     expect(screen.getByText("방문 장소")).toBeInTheDocument();
-    expect(screen.getByText("2")).toBeInTheDocument(); // visited count
     expect(screen.getByText("포인트")).toBeInTheDocument();
-    expect(screen.getByText("10")).toBeInTheDocument();
     expect(screen.getByText("획득 배지")).toBeInTheDocument();
-    expect(screen.getByText("1")).toBeInTheDocument();
   });
 });

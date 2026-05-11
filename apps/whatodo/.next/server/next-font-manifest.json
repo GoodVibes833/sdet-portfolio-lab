@@ -1,0 +1,55 @@
+{
+  "app": {
+    "[project]/apps/whatodo/src/app/_not-found/page": [
+      "static/media/fca78c2ee6cec166-s.p.0kizb7t94.kuf.woff2"
+    ],
+    "[project]/apps/whatodo/src/app/community/page": [
+      "static/media/fca78c2ee6cec166-s.p.0kizb7t94.kuf.woff2"
+    ],
+    "[project]/apps/whatodo/src/app/explore/page": [
+      "static/media/fca78c2ee6cec166-s.p.0kizb7t94.kuf.woff2"
+    ],
+    "[project]/apps/whatodo/src/app/friends/[userId]/page": [
+      "static/media/fca78c2ee6cec166-s.p.0kizb7t94.kuf.woff2"
+    ],
+    "[project]/apps/whatodo/src/app/friends/chat/[userId]/page": [
+      "static/media/fca78c2ee6cec166-s.p.0kizb7t94.kuf.woff2"
+    ],
+    "[project]/apps/whatodo/src/app/friends/page": [
+      "static/media/fca78c2ee6cec166-s.p.0kizb7t94.kuf.woff2"
+    ],
+    "[project]/apps/whatodo/src/app/hidden/page": [
+      "static/media/fca78c2ee6cec166-s.p.0kizb7t94.kuf.woff2"
+    ],
+    "[project]/apps/whatodo/src/app/map/page": [
+      "static/media/fca78c2ee6cec166-s.p.0kizb7t94.kuf.woff2"
+    ],
+    "[project]/apps/whatodo/src/app/missions/page": [
+      "static/media/fca78c2ee6cec166-s.p.0kizb7t94.kuf.woff2"
+    ],
+    "[project]/apps/whatodo/src/app/page": [
+      "static/media/fca78c2ee6cec166-s.p.0kizb7t94.kuf.woff2"
+    ],
+    "[project]/apps/whatodo/src/app/place/[id]/page": [
+      "static/media/fca78c2ee6cec166-s.p.0kizb7t94.kuf.woff2"
+    ],
+    "[project]/apps/whatodo/src/app/profile/page": [
+      "static/media/fca78c2ee6cec166-s.p.0kizb7t94.kuf.woff2"
+    ],
+    "[project]/apps/whatodo/src/app/ranking/page": [
+      "static/media/fca78c2ee6cec166-s.p.0kizb7t94.kuf.woff2"
+    ],
+    "[project]/apps/whatodo/src/app/tips/page": [
+      "static/media/fca78c2ee6cec166-s.p.0kizb7t94.kuf.woff2"
+    ],
+    "[project]/apps/whatodo/src/app/visited/page": [
+      "static/media/fca78c2ee6cec166-s.p.0kizb7t94.kuf.woff2"
+    ],
+    "[project]/apps/whatodo/src/app/wishlist/page": [
+      "static/media/fca78c2ee6cec166-s.p.0kizb7t94.kuf.woff2"
+    ]
+  },
+  "appUsingSizeAdjust": true,
+  "pages": {},
+  "pagesUsingSizeAdjust": false
+}

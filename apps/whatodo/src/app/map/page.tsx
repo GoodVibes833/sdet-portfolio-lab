@@ -23,7 +23,7 @@ export default function MapPage() {
         style={{ background: "linear-gradient(135deg, #1e3a5f, #2d5a8e)" }}
       >
         <div className="max-w-6xl mx-auto">
-          <h1 className="text-3xl font-black text-white mb-1">🗺️ 지도로 보기</h1>
+          <h1 data-testid="map-heading" className="text-3xl font-black text-white mb-1">🗺️ 지도로 보기</h1>
           <p className="text-blue-200 text-sm">
             동네별로 토론토 장소들을 한눈에 확인해요
           </p>
@@ -35,6 +35,7 @@ export default function MapPage() {
         <div className="max-w-6xl mx-auto px-4">
           <div className="flex gap-2 py-3 overflow-x-auto scrollbar-hide">
             <button
+              data-testid="map-cat-all"
               onClick={() => setSelectedCategory(null)}
               className={cn(
                 "shrink-0 px-4 py-2 rounded-xl text-sm font-semibold transition-all",
@@ -46,6 +47,7 @@ export default function MapPage() {
             </button>
             {categories.map((cat) => (
               <button
+                data-testid={`map-cat-${cat.testId}`}
                 key={cat.id}
                 onClick={() => setSelectedCategory(selectedCategory === cat.id ? null : cat.id)}
                 className={cn(
