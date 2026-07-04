@@ -1,29 +1,33 @@
 "use client";
 
 import { useMemo } from "react";
-import { places } from "@/data/places";
+import { usePlaces } from "@/context/PlacesContext";
 import PlaceCard from "@/components/PlaceCard";
 import { useUserStore } from "@/hooks/useUserStore";
 import { CheckCircle2, ArrowLeft } from "lucide-react";
 import Link from "next/link";
+import { SkeletonCard } from "@/components/SkeletonCard";
 
 export default function VisitedPage() {
+  const { places } = usePlaces();
   const { visited, points, completedMissions, earnedBadges, hydrated } = useUserStore();
 
   const visitedPlaces = useMemo(() => {
     return places.filter((p) => visited.includes(p.id));
-  }, [visited]);
+  }, [places, visited]);
 
   if (!hydrated) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center text-slate-400">
-        로딩 중...
+      <div className="min-h-screen bg-background">
+        <div className="max-w-6xl mx-auto px-4 py-8">
+          <SkeletonCard count={4} />
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-background">
       <div className="max-w-6xl mx-auto px-4 py-8">
         <div className="flex items-center gap-3 mb-8">
           <Link href="/" className="p-2 rounded-xl hover:bg-slate-200 transition-colors">

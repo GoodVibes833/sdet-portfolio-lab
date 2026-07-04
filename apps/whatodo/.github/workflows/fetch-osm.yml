@@ -1,0 +1,63 @@
+name: Fetch OSM Places
+
+on:
+  # 매일 새벽 4시 UTC (한국 시간 오전 1시, 캐나다 EST 기준 전날 밤 11시)
+  schedule:
+    - cron: '0 4 * * *'
+  # 수동 실행도 가능
+  workflow_dispatch:
+
+jobs:
+  fetch-osm:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Fetch Toronto OSM data
+        run: npm run fetch:osm-toronto
+        env:
+          NODE_ENV: production
+        continue-on-error: true
+
+      - name: Check if new data exists
+        id: check_changes
+        run: |
+          if [ -n "$(git status --porcelain raw/)" ]; then
+            echo "has_changes=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_changes=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Create Pull Request
+        if: steps.check_changes.outputs.has_changes == 'true'
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: 'chore: fetch OSM places for Toronto (${{ github.run_id }})'
+          title: 'chore: Daily OSM data fetch — Toronto'
+          body: |
+            ## 🤖 자동 수집 결과
+            - **날짜**: ${{ github.event.schedule || 'manual' }}
+            - **소스**: OpenStreetMap Overpass API
+            - **대상**: Toronto
+
+            ### 다음 단계
+            1. `raw/toronto-osm-YYYY-MM-DD.json` 확인
+            2. 기존 `src/data/toronto.ts`와 diff 비교
+            3. 새 장소만 선별하여 merge
+            4. 이미지/리뷰는 Google Places 무료 티어로 추가 보강
+          branch: bot/osm-fetch-${{ github.run_id }}
+          delete-branch: true

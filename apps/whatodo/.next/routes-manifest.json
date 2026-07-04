@@ -23,22 +23,6 @@
   },
   "dynamicRoutes": [
     {
-      "page": "/friends/chat/[userId]",
-      "regex": "^/friends/chat/([^/]+?)(?:/)?$",
-      "routeKeys": {
-        "nxtPuserId": "nxtPuserId"
-      },
-      "namedRegex": "^/friends/chat/(?<nxtPuserId>[^/]+?)(?:/)?$"
-    },
-    {
-      "page": "/friends/[userId]",
-      "regex": "^/friends/([^/]+?)(?:/)?$",
-      "routeKeys": {
-        "nxtPuserId": "nxtPuserId"
-      },
-      "namedRegex": "^/friends/(?<nxtPuserId>[^/]+?)(?:/)?$"
-    },
-    {
       "page": "/place/[id]",
       "regex": "^/place/([^/]+?)(?:/)?$",
       "routeKeys": {
@@ -67,16 +51,28 @@
       "namedRegex": "^/_not\\-found(?:/)?$"
     },
     {
+      "page": "/api/invite-accept",
+      "regex": "^/api/invite\\-accept(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/invite\\-accept(?:/)?$"
+    },
+    {
+      "page": "/api/invite-email",
+      "regex": "^/api/invite\\-email(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/invite\\-email(?:/)?$"
+    },
+    {
+      "page": "/api/places",
+      "regex": "^/api/places(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/places(?:/)?$"
+    },
+    {
       "page": "/auth/callback",
       "regex": "^/auth/callback(?:/)?$",
       "routeKeys": {},
       "namedRegex": "^/auth/callback(?:/)?$"
-    },
-    {
-      "page": "/community",
-      "regex": "^/community(?:/)?$",
-      "routeKeys": {},
-      "namedRegex": "^/community(?:/)?$"
     },
     {
       "page": "/explore",
@@ -91,46 +87,16 @@
       "namedRegex": "^/favicon\\.ico(?:/)?$"
     },
     {
-      "page": "/friends",
-      "regex": "^/friends(?:/)?$",
-      "routeKeys": {},
-      "namedRegex": "^/friends(?:/)?$"
-    },
-    {
-      "page": "/hidden",
-      "regex": "^/hidden(?:/)?$",
-      "routeKeys": {},
-      "namedRegex": "^/hidden(?:/)?$"
-    },
-    {
       "page": "/map",
       "regex": "^/map(?:/)?$",
       "routeKeys": {},
       "namedRegex": "^/map(?:/)?$"
     },
     {
-      "page": "/missions",
-      "regex": "^/missions(?:/)?$",
-      "routeKeys": {},
-      "namedRegex": "^/missions(?:/)?$"
-    },
-    {
       "page": "/profile",
       "regex": "^/profile(?:/)?$",
       "routeKeys": {},
       "namedRegex": "^/profile(?:/)?$"
-    },
-    {
-      "page": "/ranking",
-      "regex": "^/ranking(?:/)?$",
-      "routeKeys": {},
-      "namedRegex": "^/ranking(?:/)?$"
-    },
-    {
-      "page": "/tips",
-      "regex": "^/tips(?:/)?$",
-      "routeKeys": {},
-      "namedRegex": "^/tips(?:/)?$"
     },
     {
       "page": "/visited",

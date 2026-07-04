@@ -366,15 +366,18 @@ export default function MapView() {
   // ── Filter bar (shared top) ──────────────────────────────────
   const filterBar = (
     <div className="bg-white border-b border-slate-100 shadow-sm z-20 relative">
-      {/* Row 1: title + mode toggle + mobile view toggle */}
-      <div className="flex items-center justify-between px-4 pt-3 pb-2 gap-2">
-        <div className="min-w-0">
-          <p className="text-xs text-slate-400 truncate">
-            {geoLoading ? "📡 위치 찾는 중..." : `📍 화면 내 ${filtered.length}곳`}
+      {/* Row 1: count + sort + mobile toggle */}
+      <div className="flex items-center justify-between px-3 py-2 gap-2">
+        <div className="min-w-0 flex items-center gap-2">
+          <p className="text-xs text-slate-500 font-medium">
+            {geoLoading ? "📡 위치 찾는 중..." : `📍 ${filtered.length}곳`}
           </p>
-          <h2 className="font-black text-slate-900 text-sm leading-tight truncate">
-            {selectedCategory ? `${categoryIcons[selectedCategory]} ${selectedCategory}` : "🤔 주변에서 오늘 뭐하지?"}
-          </h2>
+          <select value={sortBy} onChange={(e) => setSortBy(e.target.value as any)}
+            className="text-[11px] font-bold bg-slate-100 rounded-md px-1.5 py-0.5 cursor-pointer border-none">
+            <option value="distance">거리순</option>
+            <option value="rating">평점순</option>
+            <option value="reviews">리뷰순</option>
+          </select>
         </div>
         <div className="flex items-center gap-1.5 shrink-0">
           {/* Mobile: map/list toggle */}
@@ -391,22 +394,10 @@ export default function MapView() {
         </div>
       </div>
 
-
-      {/* Sort dropdown */}
-      <div className="flex items-center gap-2 px-4 pb-2">
-        <span className="text-xs text-slate-400">정렬:</span>
-        <select value={sortBy} onChange={(e) => setSortBy(e.target.value as any)}
-          className="text-xs font-bold bg-slate-100 rounded-lg px-2 py-1 cursor-pointer">
-          <option value="distance">📍 거리순</option>
-          <option value="rating">⭐ 평점순</option>
-          <option value="reviews">💬 리뷰순</option>
-        </select>
-      </div>
-
       {/* Category chips + filter */}
-      <div className="flex items-center gap-1.5 px-3 pb-2 overflow-x-auto scrollbar-hide">
+      <div className="flex items-center gap-1 px-3 pb-1.5 overflow-x-auto scrollbar-hide">
         <button onClick={() => setShowFilters(!showFilters)}
-          className="shrink-0 flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-bold border transition-all"
+          className="shrink-0 flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-bold border transition-all"
           style={showFilters ? { background: "#1e3a5f", color: "white", borderColor: "#1e3a5f" } : { background: "white", color: "#64748b", borderColor: "#e2e8f0" }}>
           <Filter size={11} />
         </button>
@@ -416,7 +407,7 @@ export default function MapView() {
               if (selectedCategory === cat.id) { setSelectedCategory(null); setSelectedSubCategory(null); }
               else { setSelectedCategory(cat.id); setSelectedSubCategory(null); }
             }}
-            className="shrink-0 flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-bold transition-all"
+            className="shrink-0 flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-bold transition-all"
             style={selectedCategory === cat.id
               ? { background: "linear-gradient(135deg,#e85d26,#f5a623)", color: "white" }
               : { background: "#f1f5f9", color: "#64748b" }}>
@@ -429,17 +420,17 @@ export default function MapView() {
         const subs = getSubCategories(selectedCategory as Parameters<typeof getSubCategories>[0]);
         if (!subs.length) return null;
         return (
-          <div className="flex items-center gap-1.5 px-3 pb-2.5 overflow-x-auto scrollbar-hide">
+          <div className="flex items-center gap-1 px-3 pb-1.5 overflow-x-auto scrollbar-hide">
             <button
               onClick={() => setSelectedSubCategory(null)}
-              className="shrink-0 px-2.5 py-1 rounded-full text-xs font-semibold border transition-all"
+              className="shrink-0 px-2 py-0.5 rounded-full text-[11px] font-semibold border transition-all"
               style={!selectedSubCategory ? { background: "#1e3a5f", color: "white", borderColor: "#1e3a5f" } : { background: "white", color: "#64748b", borderColor: "#e2e8f0" }}>
               전체
             </button>
             {subs.map((sub) => (
               <button key={sub.id}
                 onClick={() => setSelectedSubCategory(selectedSubCategory === sub.id ? null : sub.id)}
-                className="shrink-0 flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold border transition-all"
+                className="shrink-0 flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold border transition-all"
                 style={selectedSubCategory === sub.id
                   ? { background: "linear-gradient(135deg,#1e3a5f,#2d5a8e)", color: "white", borderColor: "transparent" }
                   : { background: "white", color: "#64748b", borderColor: "#e2e8f0" }}>
@@ -512,7 +503,7 @@ export default function MapView() {
 
   // ── Place detail panel (right side or bottom sheet) ──────────
   const detailPanel = selectedPlace && (
-    <div className="bg-white border-l border-slate-100 overflow-y-auto flex flex-col w-full md:w-[360px] shrink-0 z-10">
+    <div className="bg-white border-l border-slate-100 overflow-y-auto flex flex-col w-full md:w-[340px] shrink-0 z-10">
       <div className="flex items-start justify-between p-4 gap-3 border-b border-slate-50">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
@@ -596,7 +587,7 @@ export default function MapView() {
               .map((p) => (
                 <button key={p.id} onClick={() => flyToPlace(p)}
                   className="flex items-center gap-2 w-full text-left p-2 rounded-lg hover:bg-slate-50 transition-colors">
-                  <img src={p.image} alt={p.name} className="w-10 h-10 object-cover rounded-lg shrink-0" />
+                  <img src={p.image} alt={p.name} className="w-10 h-10 object-cover rounded-lg shrink-0" onError={(e) => { (e.target as HTMLImageElement).src = getPlaceImage(null, p.category, p.tags); }} />
                   <div className="min-w-0">
                     <div className="text-xs font-bold text-slate-800 truncate">{p.name}</div>
                     <div className="text-[10px] text-slate-400">{(p as any)._dist < 100 ? `${(p as any)._dist.toFixed(1)}km` : p.category}</div>
@@ -616,7 +607,7 @@ export default function MapView() {
               .map((p) => (
                 <button key={p.id} onClick={() => flyToPlace(p)}
                   className="flex items-center gap-2 w-full text-left p-2 rounded-lg hover:bg-slate-50 transition-colors">
-                  <img src={p.image} alt={p.name} className="w-10 h-10 object-cover rounded-lg shrink-0" />
+                  <img src={p.image} alt={p.name} className="w-10 h-10 object-cover rounded-lg shrink-0" onError={(e) => { (e.target as HTMLImageElement).src = getPlaceImage(null, p.category, p.tags); }} />
                   <div className="min-w-0">
                     <div className="text-xs font-bold text-slate-800 truncate">{p.name}</div>
                     <div className="text-[10px] text-slate-400 flex items-center gap-1">
@@ -634,16 +625,16 @@ export default function MapView() {
 
   // ── List panel ───────────────────────────────────────────────
   const listPanel = (
-    <div className="overflow-y-auto bg-slate-50 flex flex-col w-full md:w-[360px] shrink-0">
+    <div className="overflow-y-auto bg-slate-50 flex flex-col w-full md:w-[300px] shrink-0">
       <div className="px-3 py-2 bg-white border-b border-slate-100">
         <div className="flex items-center justify-between">
-          <p className="text-xs text-slate-400 font-medium">
-            {placesLoading ? "장소 불러오는 중..." : `${filtered.length}개 장소 · ${sortBy === "distance" ? "거리순" : sortBy === "rating" ? "평점순" : "리뷰순"}`}
+          <p className="text-sm text-slate-500 font-medium">
+            {placesLoading ? "장소 불러오는 중..." : `${filtered.length}개 장소`}
           </p>
           <div className="flex items-center gap-1">
             {(["distance", "rating", "reviews"] as const).map((s) => (
               <button key={s} onClick={() => setSortBy(s)}
-                className={`text-[10px] font-bold px-1.5 py-0.5 rounded-md transition-all ${sortBy === s ? "bg-slate-800 text-white" : "text-slate-400 hover:text-slate-600"}`}>
+                className={`text-xs font-bold px-2 py-0.5 rounded-md transition-all ${sortBy === s ? "bg-slate-800 text-white" : "text-slate-400 hover:text-slate-600"}`}>
                 {s === "distance" ? "거리" : s === "rating" ? "평점" : "리뷰"}
               </button>
             ))}
@@ -664,13 +655,13 @@ export default function MapView() {
               onClick={() => { setSelectedPlace(place); flyToPlace(place); }}
               className={`flex items-center gap-3 w-full text-left p-3 hover:bg-white transition-colors ${isSelected ? "bg-white ring-1 ring-orange-200" : ""}`}
             >
-              <img src={place.image} alt={place.name} className="w-12 h-12 object-cover rounded-lg shrink-0" />
+              <img src={place.image} alt={place.name} className="w-12 h-12 object-cover rounded-lg shrink-0" onError={(e) => { (e.target as HTMLImageElement).src = getPlaceImage(null, place.category, place.tags); }} />
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-1.5">
-                  <span className="text-xs font-bold text-slate-900 truncate">{place.name}</span>
-                  {isChecked && <CheckCircle2 size={12} className="text-green-500 shrink-0" />}
+                  <span className="text-sm font-bold text-slate-900 truncate">{place.name}</span>
+                  {isChecked && <CheckCircle2 size={14} className="text-green-500 shrink-0" />}
                 </div>
-                <div className="flex items-center gap-1.5 text-[10px] text-slate-400">
+                <div className="flex items-center gap-1.5 text-xs text-slate-400">
                   <span>{categoryIcons[place.category]}</span>
                   <span>{place.category}</span>
                   <span>·</span>

@@ -1,32 +1,104 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, MapPin, Star, Clock, Globe, DollarSign, Lightbulb, Tag, CalendarDays, ExternalLink, RefreshCw, AlertCircle } from "lucide-react";
-import { places, categories } from "@/data/places";
+import { places as staticPlaces, categories, type Place } from "@/data/places";
 import { cn } from "@/lib/utils";
 import InviteButton from "@/components/InviteButton";
+import ReportLocationButton from "@/components/ReportLocationButton";
+import FavoritesButton from "@/components/FavoritesButton";
+import * as fs from "fs";
+import * as path from "path";
+
+export const dynamic = 'force-dynamic';
+export const dynamicParams = false;
+
+export async function generateMetadata({ params }: Props) {
+  const { id } = await params;
+  const place = await findPlace(id);
+  if (!place) return {};
+
+  return {
+    title: `${place.name} - Whatodo`,
+    description: place.shortDesc || place.description,
+    openGraph: {
+      title: place.name,
+      description: place.shortDesc || place.description,
+      images: place.image ? [{ url: place.image }] : [],
+      type: "article",
+      locale: "ko_KR",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: place.name,
+      description: place.shortDesc || place.description,
+      images: place.image ? [place.image] : [],
+    },
+  };
+}
+
+// Skip static generation — all place detail pages are server-rendered on demand
+export async function generateStaticParams() {
+  return [];
+}
 
 interface Props {
   params: Promise<{ id: string }>;
 }
 
-export async function generateStaticParams() {
-  return places.map((p) => ({ id: p.id }));
+const CITIES = ["toronto", "vancouver", "montreal", "calgary", "ottawa", "edmonton", "victoria", "winnipeg"];
+
+async function findPlace(id: string): Promise<Place | null> {
+  // 1. Check static bundle first
+  const staticPlace = staticPlaces.find((p) => p.id === id);
+  if (staticPlace) return staticPlace;
+
+  // 2. Check JSON files
+  for (const city of CITIES) {
+    const jsonPath = path.join(process.cwd(), "public", "data", `${city}.json`);
+    if (!fs.existsSync(jsonPath)) continue;
+    try {
+      const data: Place[] = JSON.parse(fs.readFileSync(jsonPath, "utf-8"));
+      const place = data.find((p) => p.id === id);
+      if (place) return place;
+    } catch { /* skip */ }
+  }
+  return null;
+}
+
+async function getAllPlaces(): Promise<Place[]> {
+  const all = [...staticPlaces];
+  for (const city of CITIES) {
+    const jsonPath = path.join(process.cwd(), "public", "data", `${city}.json`);
+    if (!fs.existsSync(jsonPath)) continue;
+    try {
+      const data: Place[] = JSON.parse(fs.readFileSync(jsonPath, "utf-8"));
+      all.push(...data);
+    } catch { /* skip */ }
+  }
+  // Deduplicate by id
+  const seen = new Set<string>();
+  return all.filter((p) => {
+    if (seen.has(p.id)) return false;
+    seen.add(p.id);
+    return true;
+  });
 }
 
 export default async function PlaceDetailPage({ params }: Props) {
   const { id } = await params;
-  const place = places.find((p) => p.id === id);
+  const place = await findPlace(id);
 
   if (!place) notFound();
 
+  const allPlaces = await getAllPlaces();
   const catInfo = categories.find((c) => c.id === place.category);
   const priceLabels = ["무료", "$", "$$", "$$$"];
-  const related = places
+  const related = allPlaces
     .filter((p) => p.id !== place.id && (p.category === place.category || p.neighborhood === place.neighborhood))
     .slice(0, 3);
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-background">
       {/* Hero Image */}
       <div className="relative h-80 md:h-[420px] overflow-hidden">
         <img
@@ -260,6 +332,20 @@ export default async function PlaceDetailPage({ params }: Props) {
         {/* Invite Friend */}
         <div className="mb-6">
           <InviteButton placeId={place.id} placeName={place.name} />
+        </div>
+
+        {/* Favorite */}
+        <div className="mb-6">
+          <FavoritesButton placeId={place.id} />
+        </div>
+
+        {/* Report Wrong Location */}
+        <div className="mb-6">
+          <ReportLocationButton
+            placeId={place.id}
+            placeName={place.name}
+            currentAddress={place.address}
+          />
         </div>
 
         {/* Tags */}

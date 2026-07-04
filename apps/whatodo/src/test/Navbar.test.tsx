@@ -10,6 +10,27 @@ vi.mock("@/hooks/useUserStore", () => ({
   useUserStore: () => ({ nickname: "", hydrated: true }),
 }));
 
+Object.defineProperty(window, "matchMedia", {
+  writable: true,
+  value: vi.fn().mockImplementation((query: string) => ({
+    matches: false,
+    media: query,
+    onchange: null,
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+    dispatchEvent: vi.fn(),
+  })),
+});
+
+Object.defineProperty(window, "localStorage", {
+  writable: true,
+  value: {
+    getItem: vi.fn(() => null),
+    setItem: vi.fn(),
+    removeItem: vi.fn(),
+  },
+});
+
 describe("Navbar", () => {
   it("로고 텍스트가 표시된다", () => {
     render(<Navbar />);

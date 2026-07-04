@@ -63,7 +63,9 @@ create table if not exists public.messages (
   id uuid primary key default gen_random_uuid(),
   sender_id uuid references public.profiles(id) on delete cascade not null,
   receiver_id uuid references public.profiles(id) on delete cascade not null,
-  content text not null,
+  content text not null default '',
+  image_url text,
+  audio_url text,
   read boolean not null default false,
   created_at timestamptz not null default now()
 );
@@ -177,3 +179,191 @@ $$;
 create or replace trigger on_auth_user_created
   after insert on auth.users
   for each row execute procedure public.handle_new_user();
+
+-- ============================================================
+-- 6. notifications 테이블 (푸시/이메일 알림 큐)
+-- ============================================================
+create table if not exists public.notifications (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid references public.profiles(id) on delete cascade not null,
+  type text not null, -- 'invite_accepted', 'new_invite', 'new_message'
+  title text not null,
+  body text not null,
+  data jsonb,
+  read boolean not null default false,
+  created_at timestamptz not null default now()
+);
+
+alter table public.notifications enable row level security;
+
+create policy "notifications_select_own" on public.notifications
+  for select using (auth.uid() = user_id);
+create policy "notifications_insert" on public.notifications
+  for insert with check (true); -- Edge Function에서 삽입 가능
+create policy "notifications_update_own" on public.notifications
+  for update using (auth.uid() = user_id);
+
+-- Realtime 활성화 (notifications)
+alter publication supabase_realtime add table public.notifications;
+
+-- ============================================================
+-- 7. invites 수락 시 Edge Function 호출 트리거
+--    (Supabase Dashboard > Database > Triggers에서 수동 생성 권장)
+-- ============================================================
+create or replace function public.handle_invite_accepted()
+returns trigger language plpgsql security definer as $$
+begin
+  if new.status = 'accepted' and old.status = 'pending' then
+    -- Edge Function 호출은 pg_net 확장 필요
+    -- SELECT net.http_post(...)
+    -- 또는 클라이언트에서 응답 후 별도 API 호출
+    -- 여기서는 notifications 테이블에 기록 (앱 푸시용)
+    insert into public.notifications (user_id, type, title, body, data)
+    values (
+      new.inviter_id,
+      'invite_accepted',
+      '초대 수락! 🎉',
+      (select nickname from public.profiles where id = new.invitee_id) || '님이 "' || new.place_name || '" 초대를 수락했어요',
+      jsonb_build_object('invite_id', new.id, 'place_name', new.place_name)
+    );
+  end if;
+  return new;
+end;
+$$;
+
+create or replace trigger invites_status_change
+  after update on public.invites
+  for each row execute procedure public.handle_invite_accepted();
+
+-- ============================================================
+-- 8. Storage Bucket RLS Policy (reviews 사진 업로드)
+-- ============================================================
+-- Supabase Dashboard > Storage > Policies에서 아래와 같이 설정:
+--
+-- Bucket: reviews
+-- Policy 1 (SELECT): public can view
+--   CREATE POLICY "reviews_select_public"
+--   ON storage.objects FOR SELECT
+--   USING (bucket_id = 'reviews');
+--
+-- Policy 2 (INSERT): authenticated users can upload their own
+--   CREATE POLICY "reviews_insert_authenticated"
+--   ON storage.objects FOR INSERT
+--   WITH CHECK (
+--     bucket_id = 'reviews'
+--     AND auth.role() = 'authenticated'
+--     AND (storage.extension(name) = 'jpg'
+--       OR storage.extension(name) = 'jpeg'
+--       OR storage.extension(name) = 'png'
+--       OR storage.extension(name) = 'webp')
+--     AND storage.filename(name) ~ '^[0-9]+_[a-z0-9]+\.(jpg|jpeg|png|webp)$'
+--   );
+--
+-- Policy 3 (DELETE): owner only
+--   CREATE POLICY "reviews_delete_owner"
+--   ON storage.objects FOR DELETE
+--   USING (bucket_id = 'reviews' AND owner = auth.uid());
+--
+-- Bucket: chat-images (채팅 이미지)
+-- Policy 1 (SELECT): participants can view
+--   CREATE POLICY "chat_images_select"
+--   ON storage.objects FOR SELECT
+--   USING (bucket_id = 'chat-images');
+--
+-- Policy 2 (INSERT): authenticated users can upload
+--   CREATE POLICY "chat_images_insert"
+--   ON storage.objects FOR INSERT
+--   WITH CHECK (
+--     bucket_id = 'chat-images'
+--     AND auth.role() = 'authenticated'
+--     AND (storage.extension(name) = 'jpg'
+--       OR storage.extension(name) = 'jpeg'
+--       OR storage.extension(name) = 'png'
+--       OR storage.extension(name) = 'webp'
+--       OR storage.extension(name) = 'gif')
+--     AND storage.filename(name) ~ '^[0-9]+_[a-z0-9]+\.(jpg|jpeg|png|webp|gif)$'
+--   );
+--
+-- Policy 3 (DELETE): owner only
+--   CREATE POLICY "chat_images_delete_owner"
+--   ON storage.objects FOR DELETE
+--   USING (bucket_id = 'chat-images' AND owner = auth.uid());
+--
+-- Bucket: chat-audio (음성 메시지)
+-- Policy 1 (SELECT): participants can view
+--   CREATE POLICY "chat_audio_select"
+--   ON storage.objects FOR SELECT
+--   USING (bucket_id = 'chat-audio');
+--
+-- Policy 2 (INSERT): authenticated users can upload
+--   CREATE POLICY "chat_audio_insert"
+--   ON storage.objects FOR INSERT
+--   WITH CHECK (
+--     bucket_id = 'chat-audio'
+--     AND auth.role() = 'authenticated'
+--     AND storage.extension(name) = 'webm'
+--     AND storage.filename(name) ~ '^[0-9]+_[a-z0-9]+\.webm$'
+--   );
+--
+-- Policy 3 (DELETE): owner only
+--   CREATE POLICY "chat_audio_delete_owner"
+--   ON storage.objects FOR DELETE
+--   USING (bucket_id = 'chat-audio' AND owner = auth.uid());
+--
+-- ============================================================
+-- 9. Reviews table (커뮤니티 리뷰)
+-- ============================================================
+-- CREATE TABLE IF NOT EXISTS public.reviews (
+--   id uuid primary key default gen_random_uuid(),
+--   user_id uuid references public.profiles(id) on delete cascade,
+--   place_id text not null,
+--   place_name text not null,
+--   content text not null,
+--   rating int not null check (rating between 1 and 5),
+--   nickname text not null,
+--   image_url text,
+--   created_at timestamptz default now()
+-- );
+--
+-- alter table public.reviews enable row level security;
+--
+-- create policy "reviews_select_public"
+--   on public.reviews for select to anon, authenticated using (true);
+--
+-- create policy "reviews_insert_authenticated"
+--   on public.reviews for insert to authenticated
+--   with check (auth.uid() = user_id);
+--
+-- create policy "reviews_delete_owner"
+--   on public.reviews for delete to authenticated
+--   using (auth.uid() = user_id);
+
+-- ============================================================
+-- Full Text Search (messages.content)
+-- ============================================================
+-- 1. Enable pg_trgm extension (Supabase Dashboard > Extensions)
+--    CREATE EXTENSION IF NOT EXISTS pg_trgm;
+--
+-- 2. Create GIN index for trigram search
+--    CREATE INDEX IF NOT EXISTS idx_messages_content_trgm
+--    ON public.messages USING gin (content gin_trgm_ops);
+--
+-- 3. Search query example:
+--    SELECT * FROM public.messages
+--    WHERE content ILIKE '%검색어%'
+--      AND (sender_id = 'me' OR receiver_id = 'me');
+--
+-- ============================================================
+-- pg_net extension (Edge Function HTTP call from SQL trigger)
+-- ============================================================
+-- NOTE: pg_net is available on Supabase but may require enabling
+--       in Dashboard > Extensions or via SQL:
+--       CREATE EXTENSION IF NOT EXISTS pg_net;
+--
+-- Example: Call Edge Function from trigger
+--   SELECT net.http_post(
+--     url := 'https://<project>.supabase.co/functions/v1/notify-inviter',
+--     headers := '{"Content-Type": "application/json", "Authorization": "Bearer <anon-key>"}'::jsonb,
+--     body := '{"invite_id": "..."}'::jsonb
+--   );
+--

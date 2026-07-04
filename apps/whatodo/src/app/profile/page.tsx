@@ -2,23 +2,24 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Heart, CheckCircle2, Star, MapPin, Trophy, Edit2, Check, Download, Upload, Trash2, RefreshCw } from "lucide-react";
-import { places, type Place } from "@/data/places";
-import { badges } from "@/data/missions";
+import { Heart, CheckCircle2, MapPin, Star, Settings, Download, Upload, Trash2, RefreshCw, Check, Edit2 } from "lucide-react";
+import { SkeletonCard } from "@/components/SkeletonCard";
+import { type Place } from "@/data/places";
+import { usePlaces } from "@/context/PlacesContext";
 import { useUserStore } from "@/hooks/useUserStore";
 import { cn } from "@/lib/utils";
 
-type Tab = "wishlist" | "visited" | "badges";
+type Tab = "wishlist" | "visited";
 
 export default function ProfilePage() {
-  const { wishlist, visited, earnedBadges, points, completedMissions, nickname, setNickname, hydrated } = useUserStore();
+  const { places } = usePlaces();
+  const { wishlist, visited, nickname, setNickname, hydrated } = useUserStore();
   const [tab, setTab] = useState<Tab>("visited");
   const [editingName, setEditingName] = useState(false);
   const [nameInput, setNameInput] = useState(nickname);
 
-  const wishlistPlaces = places.filter((p) => wishlist.includes(p.id));
-  const visitedPlaces = places.filter((p) => visited.includes(p.id));
-  const myBadges = badges.filter((b) => earnedBadges.includes(b.id));
+  const wishlistPlaces = places.filter((p) => (wishlist || []).includes(p.id));
+  const visitedPlaces = places.filter((p) => (visited || []).includes(p.id));
 
   const saveName = () => {
     if (nameInput.trim()) setNickname(nameInput.trim());
@@ -26,7 +27,7 @@ export default function ProfilePage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-background">
       {/* Profile Header */}
       <div className="py-10 px-4" style={{ background: "linear-gradient(135deg, #1e3a5f, #2d5a8e)" }}>
         <div className="max-w-2xl mx-auto">
@@ -69,10 +70,8 @@ export default function ProfilePage() {
           {/* Stats */}
           <div className="grid grid-cols-4 gap-2 text-center">
             {[
-              { label: "포인트", value: hydrated ? points : "-", icon: "⭐" },
               { label: "방문", value: hydrated ? visited.length : "-", icon: "✅" },
               { label: "위시", value: hydrated ? wishlist.length : "-", icon: "❤️" },
-              { label: "미션", value: hydrated ? completedMissions.length : "-", icon: "🏆" },
             ].map((s) => (
               <div key={s.label} className="bg-white/10 rounded-xl py-3">
                 <div className="text-lg">{s.icon}</div>
@@ -90,14 +89,13 @@ export default function ProfilePage() {
           {([
             { id: "visited", label: `✅ 다녀왔다 (${hydrated ? visitedPlaces.length : 0})` },
             { id: "wishlist", label: `❤️ 가고싶다 (${hydrated ? wishlistPlaces.length : 0})` },
-            { id: "badges", label: `🏅 뱃지 (${hydrated ? myBadges.length : 0})` },
           ] as { id: Tab; label: string }[]).map((t) => (
             <button
               key={t.id}
               onClick={() => setTab(t.id)}
               className={cn(
                 "flex-1 py-2 rounded-xl text-xs font-bold transition-all",
-                tab === t.id ? "text-white" : "text-slate-500 hover:bg-slate-50"
+                tab === t.id ? "text-white" : "text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800"
               )}
               style={tab === t.id ? { background: "linear-gradient(135deg, #e85d26, #f5a623)" } : {}}
             >
@@ -109,7 +107,7 @@ export default function ProfilePage() {
 
       <div className="max-w-2xl mx-auto px-4 py-6">
         {!hydrated ? (
-          <div className="text-center py-16 text-slate-400">로딩 중...</div>
+          <SkeletonCard count={3} />
         ) : (
           <>
             {tab === "visited" && (
@@ -130,30 +128,15 @@ export default function ProfilePage() {
                 </div>
               )
             )}
-            {tab === "badges" && (
-              myBadges.length === 0 ? (
-                <EmptyState emoji="🏅" title="아직 획득한 뱃지가 없어요" sub="미션을 완료하면 뱃지를 받아요!" />
-              ) : (
-                <div className="grid grid-cols-2 gap-3">
-                  {myBadges.map((badge) => (
-                    <div key={badge.id} className={cn("rounded-2xl p-5 text-center border-transparent shadow-sm", badge.color)}>
-                      <div className="text-4xl mb-2">{badge.emoji}</div>
-                      <div className="font-black text-sm mb-1">{badge.name}</div>
-                      <div className="text-xs opacity-70">{badge.description}</div>
-                    </div>
-                  ))}
-                </div>
-              )
-            )}
           </>
         )}
 
         <div className="mt-6 text-center">
-          <Link href="/missions"
+          <Link href="/settings"
             className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-white text-sm"
             style={{ background: "linear-gradient(135deg, #e85d26, #f5a623)" }}>
-            <Trophy size={15} />
-            미션 보러가기
+            <Settings size={15} />
+            설정
           </Link>
         </div>
 
@@ -256,12 +239,12 @@ function DataManagement() {
   };
 
   return (
-    <div className="mt-8 border border-slate-200 rounded-2xl p-4 bg-white">
+    <div className="mt-8 border border-slate-200 rounded-2xl p-4 bg-surface">
       <h3 className="font-black text-slate-800 text-sm mb-1">데이터 관리</h3>
       <p className="text-xs text-slate-400 mb-4">방문 기록·위시리스트는 이 기기에 저장돼요. 기기 변경 시 백업을 사용하세요.</p>
 
       {msg && (
-        <div className="mb-3 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-700 font-semibold">{msg}</div>
+        <div className="mb-3 px-3 py-2 bg-slate-100 dark:bg-slate-800 border border-slate-200 rounded-xl text-xs text-slate-700 dark:text-slate-200 font-semibold">{msg}</div>
       )}
 
       <div className="grid grid-cols-2 gap-2 mb-2">

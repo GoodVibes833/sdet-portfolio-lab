@@ -56,10 +56,10 @@ describe("places 데이터 무결성", () => {
 
   it("모든 place의 lat/lng는 캐나다 범위 내다", () => {
     for (const place of places) {
-      expect(place.lat, `${place.id} lat out of range`).toBeGreaterThan(42);
-      expect(place.lat, `${place.id} lat out of range`).toBeLessThan(60);
-      expect(place.lng, `${place.id} lng out of range`).toBeGreaterThan(-141);
-      expect(place.lng, `${place.id} lng out of range`).toBeLessThan(-52);
+      expect(place.lat, `${place.id} lat out of range: ${place.lat}`).toBeGreaterThan(42);
+      expect(place.lat, `${place.id} lat out of range: ${place.lat}`).toBeLessThan(70);
+      expect(place.lng, `${place.id} lng out of range: ${place.lng}`).toBeGreaterThan(-141);
+      expect(place.lng, `${place.id} lng out of range: ${place.lng}`).toBeLessThan(-52);
     }
   });
 

@@ -1,6 +1,6 @@
 # sdet-portfolio-lab
 
-A production-grade SDET portfolio monorepo covering API testing, E2E automation, performance engineering, chaos engineering, and AWS cloud profiling.
+A production-grade SDET portfolio monorepo. Contains both the product under test and the full test suite — mirroring the real-world SDET workflow where source and tests evolve together.
 
 ## Architecture
 
@@ -8,24 +8,16 @@ A production-grade SDET portfolio monorepo covering API testing, E2E automation,
 sdet-portfolio-lab/
 ├── apps/
 │   ├── whatodo/                # [Product] WhatToDo app — Next.js + Supabase + Leaflet
-│   ├── target-server/          # [Test Target] Fault-injection API — Node.js + Express
-│   │   ├── /health, /users, /products  # Clean CRUD endpoints
-│   │   └── /fault/*            # Latency, error-rate, memory-leak, cpu-spike injection
-│   └── aws-profiling-server/   # [AWS Practice] Cloud-integrated profiling server
-│       ├── /fast, /cpu-heavy, /memory-leak  # Baseline & fault endpoints
-│       ├── /api/aws/s3-status, /api/aws/rds-status  # AWS service health
-│       ├── /api/aws/cost       # Cost Explorer integration
-│       ├── /api/metrics/*      # RDS metrics persistence
-│       └── /api/sqs/*          # SQS send/receive worker simulation
+│   │                           #   Explore activities, map view, auth, missions
+│   └── target-server/          # [Test Target] Fault-injection API — Node.js + Express
+│       ├── /health, /users, /products  # Clean CRUD endpoints
+│       └── /fault/*            # Latency, error-rate, memory-leak, cpu-spike injection
 ├── tests/
 │   ├── api/                    # [Phase 1 ✅] Jest + SuperTest → target-server
 │   ├── e2e/                    # [Phase 2] Playwright → whatodo UI
-│   └── performance/            # [Phase 3 ✅] k6 → aws-profiling-server
-├── chaos/                      # [Phase 3 ✅] Network degradation + resource starvation scripts
-├── monitoring/                 # [Phase 3 ✅] Host info + system metrics collection
-├── docs/
-│   ├── AWS_Architecture_Guide.md
-│   └── AWS_SAA_Study_Guide.md
+│   ├── performance/            # [Phase 3] k6 → whatodo + target-server
+│   └── contract/               # [Phase 4] Pact contract tests
+├── monitoring/                 # [Phase 3] Prometheus + Grafana (Docker Compose)
 └── .github/workflows/          # [Phase 4] CI/CD (PR-triggered)
 ```
 
@@ -38,8 +30,6 @@ sdet-portfolio-lab/
 | Performance | k6 | JS-native scripts; cloud-ready; CI-friendly thresholds |
 | Contract | Pact | Consumer-driven; decouples service team deployments |
 | Observability | Prometheus + Grafana | De facto metrics stack; correlate load test results |
-| Chaos Engineering | `tc` + `stress-ng` | Network latency/packet loss + CPU/memory starvation |
-| Cloud Profiling | AWS SDK v3 | S3, RDS, SQS, Cost Explorer, Secrets Manager |
 | CI/CD | GitHub Actions | Native PR integration; matrix strategy for parallel jobs |
 
 ## Quick Start
@@ -54,20 +44,14 @@ npm run dev:whatodo
 # Start the fault-injection target server (http://localhost:3001)
 npm run dev:target
 
-# Start the AWS profiling server (http://localhost:3002)
-npm run dev:aws
-
 # Run API tests (Phase 1 — target-server)
 npm run test:api
 
 # Run E2E tests (Phase 2 — whatodo)
 npm run test:e2e
 
-# Run performance tests (Phase 3 — aws-profiling-server)
-npm run test:perf:smoke
-npm run test:perf:stress
-npm run test:perf:spike
-npm run test:perf:soak
+# Run performance tests (Phase 3)
+npm run test:perf
 ```
 
 ## Target Server Endpoints
@@ -96,7 +80,7 @@ npm run test:perf:soak
 | PUT | `/products/:id` | Update product |
 | DELETE | `/products/:id` | Delete product |
 
-### Fault Injection (target-server)
+### Fault Injection
 | Method | Path | Description |
 |--------|------|-------------|
 | GET | `/fault/slow` | Artificial delay (`?delay=ms`, default 2000) |
@@ -104,40 +88,6 @@ npm run test:perf:soak
 | GET | `/fault/memory-leak` | Allocates 1MB/request to heap |
 | GET | `/fault/cpu-spike` | Fibonacci CPU pressure (`?n=`, default 40) |
 | GET | `/fault/timeout` | Hangs indefinitely (`?duration=ms`) |
-
-## AWS Profiling Server Endpoints
-
-### Baseline & Fault
-| Method | Path | Description |
-|--------|------|-------------|
-| GET | `/fast` | Baseline response |
-| GET | `/cpu-heavy` | Recursive Fibonacci CPU spike |
-| GET | `/memory-leak` | Allocates 1MB to global array |
-
-### AWS S3
-| Method | Path | Description |
-|--------|------|-------------|
-| GET | `/api/aws/s3-status` | List buckets and connection status |
-| POST | `/api/s3/export-snapshot` | Save JSON snapshot to S3 |
-| GET | `/api/s3/snapshots` | List saved snapshots |
-
-### AWS RDS
-| Method | Path | Description |
-|--------|------|-------------|
-| GET | `/api/aws/rds-status` | MySQL connection health check |
-| POST | `/api/metrics/save` | Persist metrics to RDS |
-| GET | `/api/metrics/history` | Retrieve metrics history |
-
-### AWS Cost Explorer
-| Method | Path | Description |
-|--------|------|-------------|
-| GET | `/api/aws/cost` | This month's service-level cost |
-
-### AWS SQS
-| Method | Path | Description |
-|--------|------|-------------|
-| POST | `/api/sqs/send` | Send message to queue |
-| GET | `/api/sqs/receive` | Receive and delete message (worker sim) |
 
 ## Design Decisions
 
@@ -149,13 +99,11 @@ npm run test:perf:soak
 
 **Why fault endpoints?** Real SDET work involves testing how systems behave under degraded conditions. These endpoints let performance and resilience tests run without infrastructure dependencies.
 
-**Why AWS SDK v3?** Modular imports reduce bundle size and cold-start latency compared to v2 monolithic clients.
-
 ## Phases
 
 | Phase | Status | Contents |
 |-------|--------|----------|
 | 1 | ✅ Complete | target-server + API tests (Jest + SuperTest) |
-| 2 | � In Progress | Playwright E2E → whatodo (Next.js + Vitest + Playwright) |
-| 3 | ✅ Complete | k6 performance tests + chaos engineering + AWS profiling server |
+| 2 | 🔜 Planned | Playwright E2E (admin dashboard UI) |
+| 3 | 🔜 Planned | k6 performance tests + Prometheus/Grafana |
 | 4 | 🔜 Planned | GitHub Actions CI/CD pipeline |

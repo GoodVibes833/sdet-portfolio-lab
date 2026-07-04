@@ -1,26 +1,66 @@
 "use client";
 
 import { useState } from "react";
-import { MapPin, Star, Heart, CheckCircle2, Clock, Globe, DollarSign, Lightbulb, CalendarDays, ExternalLink, ChevronDown } from "lucide-react";
+import { MapPin, Star, Heart, CheckCircle2, Clock, Globe, DollarSign, Lightbulb, CalendarDays, ExternalLink, ChevronDown, Share2, Navigation } from "lucide-react";
 import { Place, categories } from "@/data/places";
-import { cn } from "@/lib/utils";
+import { cn, getDistance, formatDistance, getPlaceImage } from "@/lib/utils";
 import { useUserStore } from "@/hooks/useUserStore";
+import InviteButton from "@/components/InviteButton";
 
 interface PlaceCardProps {
   place: Place;
   className?: string;
+  userLocation?: { lat: number; lng: number } | null;
 }
 
 const priceLabels = ["무료", "$", "$$", "$$$"];
 
-export default function PlaceCard({ place, className }: PlaceCardProps) {
+export default function PlaceCard({ place, className, userLocation }: PlaceCardProps) {
   const [expanded, setExpanded] = useState(false);
+  const [shareSuccess, setShareSuccess] = useState(false);
   const categoryInfo = categories.find((c) => c.id === place.category);
   const { wishlist, visited, toggleWishlist, toggleVisited, hydrated } = useUserStore();
 
-  const isWished = hydrated && wishlist.includes(place.id);
-  const isVisited = hydrated && visited.includes(place.id);
+  const isWished = hydrated && (wishlist || []).includes(place.id);
+  const isVisited = hydrated && (visited || []).includes(place.id);
   const isHidden = place.tags.some((t) => t.includes("히든") || t.includes("hidden"));
+
+  // Calculate distance from user location
+  const distance = userLocation
+    ? getDistance(userLocation.lat, userLocation.lng, place.lat, place.lng)
+    : null;
+
+  // Handle share
+  const handleShare = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const shareData = {
+      title: place.name,
+      text: `${place.name} - ${place.shortDesc}`,
+      url: `${typeof window !== 'undefined' ? window.location.origin : ''}/place/${place.id}`,
+    };
+
+    try {
+      if (navigator.share) {
+        await navigator.share(shareData);
+        setShareSuccess(true);
+        setTimeout(() => setShareSuccess(false), 2000);
+      } else {
+        // Fallback to clipboard
+        await navigator.clipboard.writeText(`${shareData.title}\n${shareData.text}\n${shareData.url}`);
+        setShareSuccess(true);
+        setTimeout(() => setShareSuccess(false), 2000);
+      }
+    } catch (err) {
+      console.error('Share failed:', err);
+    }
+  };
+
+  // Handle navigation
+  const handleNavigate = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const url = `https://www.google.com/maps/dir/?api=1&destination=${place.lat},${place.lng}&destination_place=${encodeURIComponent(place.name)}`;
+    window.open(url, '_blank');
+  };
 
   return (
     <div className={cn("block group relative", className)}>
@@ -46,6 +86,16 @@ export default function PlaceCard({ place, className }: PlaceCardProps) {
         >
           <Heart size={15} />
         </button>
+        <button
+          onClick={handleShare}
+          title={shareSuccess ? "복사됨!" : "공유하기"}
+          className={cn(
+            "w-8 h-8 rounded-full flex items-center justify-center shadow-md transition-all",
+            shareSuccess ? "bg-blue-500 text-white" : "bg-white/90 text-slate-400 hover:text-blue-500"
+          )}
+        >
+          <Share2 size={15} />
+        </button>
       </div>
 
       <div
@@ -57,9 +107,10 @@ export default function PlaceCard({ place, className }: PlaceCardProps) {
       )}>
         <div className="relative h-48 overflow-hidden">
           <img
-            src={place.image}
+            src={getPlaceImage(place.image, place.category, place.tags)}
             alt={place.name}
             className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+            loading="lazy"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
 
@@ -95,9 +146,17 @@ export default function PlaceCard({ place, className }: PlaceCardProps) {
             </span>
           </div>
 
-          <div className="absolute bottom-3 left-3 flex items-center gap-1">
-            <Star size={13} className="text-yellow-400 fill-yellow-400" />
-            <span className="text-white text-xs font-semibold">{place.rating}</span>
+          <div className="absolute bottom-3 left-3 flex items-center gap-2">
+            <div className="flex items-center gap-1">
+              <Star size={13} className="text-yellow-400 fill-yellow-400" />
+              <span className="text-white text-xs font-semibold">{place.rating}</span>
+            </div>
+            {distance !== null && (
+              <div className="flex items-center gap-1 bg-black/40 backdrop-blur-sm px-2 py-0.5 rounded-full">
+                <Navigation size={11} className="text-emerald-400" />
+                <span className="text-white text-xs font-semibold">{formatDistance(distance)}</span>
+              </div>
+            )}
           </div>
         </div>
 
@@ -146,7 +205,37 @@ export default function PlaceCard({ place, className }: PlaceCardProps) {
           </div>
           <div className="flex items-center justify-center mt-2 text-slate-400"><ChevronDown size={16} className={cn("transition-transform", expanded && "rotate-180")} /></div>
         </div>
-        {expanded && <div className="px-4 pb-5 border-t border-slate-100 pt-4"><p className="text-sm text-slate-500">{place.description}</p></div>}
+        {expanded && (
+          <div className="px-4 pb-5 border-t border-slate-100 pt-4 space-y-4">
+            <p className="text-sm text-slate-500">{place.description}</p>
+            {distance !== null && (
+              <div className="flex items-center gap-2 text-sm text-slate-600 bg-slate-100 dark:bg-slate-800 px-3 py-2 rounded-xl">
+                <Navigation size={16} className="text-emerald-500" />
+                <span>현재 위치에서 <strong className="text-emerald-600">{formatDistance(distance)}</strong></span>
+              </div>
+            )}
+            <div className="flex gap-2 flex-wrap">
+              <button
+                onClick={handleNavigate}
+                className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-emerald-500 text-white rounded-xl text-sm font-semibold hover:bg-emerald-600 transition-colors"
+              >
+                <Navigation size={16} />
+                길찾기
+              </button>
+              <button
+                onClick={handleShare}
+                className={cn(
+                  "flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-colors",
+                  shareSuccess ? "bg-blue-500 text-white" : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                )}
+              >
+                <Share2 size={16} />
+                {shareSuccess ? "복사됨!" : "공유"}
+              </button>
+              <InviteButton placeId={place.id} placeName={place.name} placeNeighborhood={place.neighborhood} variant="card" />
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

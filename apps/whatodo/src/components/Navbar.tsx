@@ -2,15 +2,13 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { MapPin, List, Menu, X, User, Heart, CheckCircle2 } from "lucide-react";
+import { MapPin, List, Menu, X, User, Heart, CheckCircle2, MessageCircle } from "lucide-react";
+import ThemeToggle from "./ThemeToggle";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { useUserStore } from "@/hooks/useUserStore";
 
 const navItems = [
-  { href: "/", label: "지도", icon: MapPin, testId: "nav-map" },
-  { href: "/explore", label: "탐색", icon: List, testId: "nav-explore" },
-  { href: "/wishlist", label: "가고싶다", icon: Heart, testId: "nav-wishlist" },
   { href: "/visited", label: "다녀왔어요", icon: CheckCircle2, testId: "nav-visited" },
 ];
 
@@ -56,6 +54,9 @@ export default function Navbar() {
           </div>
 
           <div className="flex items-center gap-2">
+            <div className="hidden md:block">
+              <ThemeToggle />
+            </div>
             {hydrated && (
               <Link
                 href="/profile"

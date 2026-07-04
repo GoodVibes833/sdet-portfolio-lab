@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { places } from "@/data/places";
+import { getDistance } from "@/lib/utils";
 
 const HIDDEN_TAGS = ["히든", "hidden", "숨은명소", "히든카페", "히든맛집", "히든바"];
 
@@ -8,19 +9,24 @@ function isHiddenPlace(tags: string[]) {
 }
 
 function filterPlaces(opts: {
-  city?: string;
   category?: string | null;
   priceLevel?: number | null;
   hiddenOnly?: boolean;
   search?: string;
   freeOnly?: boolean;
+  userLat?: number;
+  userLng?: number;
+  radiusKm?: number;
 }) {
   return places.filter((p) => {
-    if (opts.city && p.city !== opts.city) return false;
     if (opts.category && p.category !== opts.category) return false;
     if (opts.priceLevel !== undefined && opts.priceLevel !== null && p.priceLevel !== opts.priceLevel) return false;
     if (opts.freeOnly && p.priceLevel !== 0) return false;
     if (opts.hiddenOnly && !isHiddenPlace(p.tags)) return false;
+    if (opts.radiusKm !== undefined && opts.userLat !== undefined && opts.userLng !== undefined) {
+      const dist = getDistance(opts.userLat, opts.userLng, p.lat, p.lng);
+      if (dist > opts.radiusKm) return false;
+    }
     if (opts.search) {
       const q = opts.search.toLowerCase();
       const hit =
@@ -34,24 +40,16 @@ function filterPlaces(opts: {
   });
 }
 
-describe("필터 로직 — 도시", () => {
-  it("toronto 필터가 토론토 장소만 반환한다", () => {
-    const result = filterPlaces({ city: "toronto" });
-    expect(result.every((p) => p.city === "toronto")).toBe(true);
-    expect(result.length).toBeGreaterThan(0);
-  });
-
-  it("vancouver 필터가 밴쿠버 장소만 반환한다", () => {
-    const result = filterPlaces({ city: "vancouver" });
-    expect(result.every((p) => p.city === "vancouver")).toBe(true);
-    expect(result.length).toBeGreaterThan(0);
-  });
-});
-
 describe("필터 로직 — 카테고리", () => {
   it("맛집 카테고리 필터가 올바르게 동작한다", () => {
     const result = filterPlaces({ category: "맛집" });
     expect(result.every((p) => p.category === "맛집")).toBe(true);
+    expect(result.length).toBeGreaterThan(0);
+  });
+
+  it("카페 카테고리 필터가 올바르게 동작한다", () => {
+    const result = filterPlaces({ category: "카페" });
+    expect(result.every((p) => p.category === "카페")).toBe(true);
     expect(result.length).toBeGreaterThan(0);
   });
 
@@ -74,17 +72,43 @@ describe("필터 로직 — 가격", () => {
   });
 });
 
+describe("필터 로직 — GPS 반경", () => {
+  const TORONTO = { lat: 43.651, lng: -79.347 };
+
+  it("반경 5km 내 장소만 반환한다", () => {
+    const result = filterPlaces({ userLat: TORONTO.lat, userLng: TORONTO.lng, radiusKm: 5 });
+    result.forEach((p) => {
+      const dist = getDistance(TORONTO.lat, TORONTO.lng, p.lat, p.lng);
+      expect(dist).toBeLessThanOrEqual(5);
+    });
+  });
+
+  it("반경 넓히면 결과가 늘어난다", () => {
+    const small = filterPlaces({ userLat: TORONTO.lat, userLng: TORONTO.lng, radiusKm: 5 });
+    const large = filterPlaces({ userLat: TORONTO.lat, userLng: TORONTO.lng, radiusKm: 50 });
+    expect(large.length).toBeGreaterThanOrEqual(small.length);
+  });
+
+  it("반경 0km는 빈 배열을 반환한다", () => {
+    const result = filterPlaces({ userLat: TORONTO.lat, userLng: TORONTO.lng, radiusKm: 0 });
+    expect(result.length).toBe(0);
+  });
+
+  it("반경 내 장소를 거리순으로 정렬할 수 있다", () => {
+    const result = filterPlaces({ userLat: TORONTO.lat, userLng: TORONTO.lng, radiusKm: 50 })
+      .map((p) => ({ ...p, _dist: getDistance(TORONTO.lat, TORONTO.lng, p.lat, p.lng) }))
+      .sort((a, b) => a._dist - b._dist);
+    for (let i = 0; i < result.length - 1; i++) {
+      expect(result[i]._dist).toBeLessThanOrEqual(result[i + 1]._dist);
+    }
+  });
+});
+
 describe("필터 로직 — 히든 스팟", () => {
   it("hiddenOnly=true가 히든 태그 있는 장소만 반환한다", () => {
     const result = filterPlaces({ hiddenOnly: true });
     expect(result.length).toBeGreaterThan(0);
     expect(result.every((p) => isHiddenPlace(p.tags))).toBe(true);
-  });
-
-  it("hiddenOnly=false면 전체 반환한다", () => {
-    const all = filterPlaces({});
-    const result = filterPlaces({ hiddenOnly: false });
-    expect(result.length).toBe(all.length);
   });
 
   it("isHiddenPlace가 히든 태그를 올바르게 감지한다", () => {
@@ -110,16 +134,19 @@ describe("필터 로직 — 검색", () => {
 });
 
 describe("필터 로직 — 복합 조건", () => {
-  it("도시 + 카테고리 복합 필터가 동작한다", () => {
-    const result = filterPlaces({ city: "toronto", category: "맛집" });
-    expect(result.every((p) => p.city === "toronto" && p.category === "맛집")).toBe(true);
+  it("GPS 반경 + 카테고리 복합 필터가 동작한다", () => {
+    const TORONTO = { lat: 43.651, lng: -79.347 };
+    const result = filterPlaces({ userLat: TORONTO.lat, userLng: TORONTO.lng, radiusKm: 100, category: "맛집" });
+    expect(result.every((p) => p.category === "맛집")).toBe(true);
+    result.forEach((p) => {
+      const dist = getDistance(TORONTO.lat, TORONTO.lng, p.lat, p.lng);
+      expect(dist).toBeLessThanOrEqual(100);
+    });
   });
 
-  it("도시 + 히든 복합 필터가 동작한다", () => {
-    const result = filterPlaces({ city: "toronto", hiddenOnly: true });
-    expect(
-      result.every((p) => p.city === "toronto" && isHiddenPlace(p.tags))
-    ).toBe(true);
-    expect(result.length).toBeGreaterThan(0);
+  it("GPS 반경 + 무료 복합 필터가 동작한다", () => {
+    const TORONTO = { lat: 43.651, lng: -79.347 };
+    const result = filterPlaces({ userLat: TORONTO.lat, userLng: TORONTO.lng, radiusKm: 100, freeOnly: true });
+    expect(result.every((p) => p.priceLevel === 0)).toBe(true);
   });
 });

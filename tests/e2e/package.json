@@ -1,0 +1,24 @@
+{
+  "name": "whatodo-e2e",
+  "version": "1.0.0",
+  "private": true,
+  "description": "E2E tests for 캐나다가자 app — Cypress + Cucumber (Gherkin)",
+  "scripts": {
+    "cy:open": "cypress open",
+    "cy:run": "cypress run",
+    "cy:run:errors": "cypress run 2>&1 | grep -A 5 'AssertionError\\|Error:\\|failed\\|FAILED'",
+    "cy:run:tag": "cypress run --env tags=",
+    "cy:run:smoke": "cypress run --env tags=@smoke"
+  },
+  "devDependencies": {
+    "@badeball/cypress-cucumber-preprocessor": "^22.1.0",
+    "@bahmutov/cypress-esbuild-preprocessor": "^2.2.5",
+    "cypress": "^13.17.0",
+    "esbuild": "^0.25.4",
+    "typescript": "^5.8.3"
+  },
+  "cypress-cucumber-preprocessor": {
+    "nonGlobalStepDefinitions": true,
+    "stepDefinitions": "cypress/step_definitions/**/*.ts"
+  }
+}

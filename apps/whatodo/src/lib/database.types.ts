@@ -53,6 +53,8 @@ export type MessageRow = {
   sender_id: string;
   receiver_id: string;
   content: string;
+  image_url: string | null;
+  audio_url: string | null;
   read: boolean;
   created_at: string;
 };
@@ -149,7 +151,9 @@ export interface Database {
           id?: string;
           sender_id: string;
           receiver_id: string;
-          content: string;
+          content?: string;
+          audio_url?: string | null;
+          image_url?: string | null;
           read?: boolean;
           created_at?: string;
         };

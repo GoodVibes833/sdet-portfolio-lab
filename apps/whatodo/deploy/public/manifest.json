@@ -1,0 +1,19 @@
+{
+  "name": "오늘 뭐하지? — 캐나다 워홀 핫플",
+  "short_name": "오늘뭐하지",
+  "description": "현재 위치 기반으로 주변 맛집, 카페, 액티비티, 야경 스팟을 바로 찾아줘요.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#1e3a5f",
+  "theme_color": "#1e3a5f",
+  "orientation": "portrait",
+  "scope": "/",
+  "icons": [
+    {
+      "src": "/globe.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
